@@ -1,0 +1,30 @@
+# The epic's declaration. metadata.name equals the directory name; metadata.key
+# is the task-key prefix this epic reserves (MA → MA-1, MA-2, …). Owner, target
+# date and health are the platform's — never written here.
+apiVersion: orun.io/v1
+kind: Epic
+metadata:
+  name: mcp-apps-starter
+  key: MA
+spec:
+  title: "Vercel's MCP Apps Next.js starter on Cloudflare Workers"
+  summary: "Vercel's MCP Apps Next.js starter — a Next.js app whose /mcp endpoint (mcp-handler, stateless Streamable HTTP) registers a greet tool that carries a UI widget, the widget being the app's own home page, fetched by the route and served as an MCP resource — runs on Cloudflare Workers + Static Assets through OpenNext, the self-fetch going through a service binding to the Worker itself, inside the Cirrus baseline's repository conventions, and becomes an Orun baseline that takes a new MCP Apps server from nothing to live on stage and prod in one landing."
+  state: started
+  milestones:
+    - name: "MA0 — the spec"
+      exitCriteria:
+        - "the repository is born with its intent, CI, tooling and spec index, and this doc set and the task contracts are on main"
+      tasks: [MA-1]
+    - name: "MA1 — the MCP Apps server on Workers"
+      exitCriteria:
+        - "apps/web is the upstream app, built by @opennextjs/cloudflare into one Worker with Static Assets, its widget route fetching its own page through WORKER_SELF_REFERENCE"
+        - "`pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` are green"
+        - "`wrangler dev` serves /mcp to the MCP SDK's own client: initialize with no session, tools/list, tools/call greet, resources/list and resources/read of the widget, rendered for the public origin"
+        - "the README says how to run, test, connect a host and deploy it, that /mcp is open, and how every Vercel piece maps to Cloudflare"
+      tasks: [MA-2]
+    - name: "MA2 — a baseline"
+      exitCriteria:
+        - "blueprint.yaml (the console card) and repo-blueprint.yaml (the build) take a new MCP Apps server from nothing to live on stage and prod in one landing, then record it"
+        - "a server built from it carries the server only, renamed throughout to its own name, repository and Worker, its self-binding naming its own Worker"
+        - "Baseline CI is green: contract tests, generated component docs, the blueprint read by the pinned orun, the leak gate, the offline bootstrap and the end-to-end tier — the stage lane's steps in a staged job tree, the Worker smoke-tested and called by an MCP client"
+      tasks: [MA-3]
