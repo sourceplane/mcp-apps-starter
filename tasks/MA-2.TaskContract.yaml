@@ -1,0 +1,17 @@
+apiVersion: orun.io/v1
+kind: TaskContract
+metadata:
+  name: MA-2
+  title: "The MCP Apps server on Workers"
+spec:
+  goal: Vercel's MCP Apps Next.js starter runs on Cloudflare Workers + Static Assets through OpenNext — the greet tool and its widget at /mcp, the widget fetched through a service binding to the Worker itself — with its tests, and its README saying how it maps to Vercel
+  affects:
+    - apps/web
+    - tests/web
+    - pnpm-lock.yaml
+    - pnpm-workspace.yaml
+    - README.md
+  doneWhen:
+    - pnpm typecheck, lint, test and build are green
+    - wrangler dev answers an MCP client at /mcp — initialize, tools/list, tools/call, resources/list, resources/read — and /api/health
+  gates: []
