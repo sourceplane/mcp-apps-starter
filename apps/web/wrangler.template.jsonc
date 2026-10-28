@@ -1,0 +1,31 @@
+// The source of wrangler.jsonc, which tooling/wire renders from it: for local
+// work (`pnpm run wire:fixture`, committed as the dev render) and on every
+// Orun lane for that lane's environment (component.yaml's buildCommand). Edit
+// this file, never wrangler.jsonc. The workers-assets composition deploys one
+// environment per job with no wrangler `--env`, so `__ENV__` names the
+// environment this config is rendered for. The Worker's name carries it
+// (mcp-apps-starter-web-stage, mcp-apps-starter-web-prod — the composition's
+// `workerName` + environment) because the self-reference service binding
+// below must name exactly the Worker it runs in.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mcp-apps-starter-web-__ENV__",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": { "enabled": true },
+  // No `vars`: the server's name is app/site.ts, and its public origin is
+  // inlined at build (NEXT_PUBLIC_SITE_URL, baseUrl.ts).
+
+  // The MCP route renders each widget by requesting one of the app's own
+  // pages. It requests it from the Worker itself through this binding rather
+  // than over the network: a Worker fetching its own workers.dev hostname is
+  // refused.
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "mcp-apps-starter-web-__ENV__" },
+  ],
+}
