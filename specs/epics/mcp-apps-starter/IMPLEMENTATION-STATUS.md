@@ -4,7 +4,7 @@
 |---|---|---|
 | MA0 — the spec | ✅ | MA-1 |
 | MA1 — the MCP Apps server on Workers | ✅ | MA-2 |
-| MA2 — a baseline | planned | MA-3 |
+| MA2 — a baseline | ✅ | MA-3, tagged `baseline-v1` |
 
 ## Departures from the upstream starter
 

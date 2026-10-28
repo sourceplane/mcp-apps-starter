@@ -10,7 +10,7 @@ in one landing.**
 
 | | |
 |---|---|
-| Status | In progress — MA1 on main: the MCP Apps server runs on Workers |
+| Status | ✅ Shipped (`baseline-v1`) — proven offline in Baseline CI; not yet live (risk MA-A) |
 | Upstream | [vercel-labs/mcp-apps-nextjs-starter](https://github.com/vercel-labs/mcp-apps-nextjs-starter), at `adca42c` — **no licence** (risk MA-B) |
 | Reference | [portfolio-starter-kit](https://github.com/sourceplane/portfolio-starter-kit) (the Next.js-on-OpenNext scaffolding), [hono-mcp](https://github.com/sourceplane/hono-mcp) (the MCP lessons) |
 | Key | `MA` |

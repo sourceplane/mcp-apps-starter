@@ -9,7 +9,7 @@ metadata:
 spec:
   title: "Vercel's MCP Apps Next.js starter on Cloudflare Workers"
   summary: "Vercel's MCP Apps Next.js starter — a Next.js app whose /mcp endpoint (mcp-handler, stateless Streamable HTTP) registers a greet tool that carries a UI widget, the widget being the app's own home page, fetched by the route and served as an MCP resource — runs on Cloudflare Workers + Static Assets through OpenNext, the self-fetch going through a service binding to the Worker itself, inside the Cirrus baseline's repository conventions, and becomes an Orun baseline that takes a new MCP Apps server from nothing to live on stage and prod in one landing."
-  state: started
+  state: completed
   milestones:
     - name: "MA0 — the spec"
       exitCriteria:
