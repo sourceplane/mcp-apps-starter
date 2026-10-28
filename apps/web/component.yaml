@@ -1,0 +1,95 @@
+apiVersion: sourceplane.io/v1
+kind: Component
+metadata:
+  name: web
+  description: The MCP Apps server (Next.js on Cloudflare Workers + Static Assets via @opennextjs/cloudflare, per environment) — an MCP endpoint at /mcp whose tools carry UI widgets rendered from the app's own pages
+spec:
+  type: cloudflare-workers-assets-turbo
+  lifecycle: production
+  owner: platform
+  # Its pages, attached to it in the workspace's catalog: what the Docs
+  # library shows for it, and what the catalog's docs and runbook checks read.
+  # Generated from what this manifest and its sources declare.
+  docs:
+    overview: docs/overview.md
+    pages:
+      - { path: docs/architecture.md, role: architecture, title: Architecture }
+      - { path: docs/runbook.md, role: runbook, title: Runbook }
+  # `app`, not `web`: a domain and a component share one name space in the
+  # catalog, and a domain called `web` hid this component from it.
+  domain: app
+  path: apps/web
+  # Its own lane per environment: the Next.js build is the longest job in the
+  # plan, and a shared lane would wait on it.
+  lane: isolated
+  subscribe:
+    environments:
+      - name: dev
+        profile: verify
+      - name: stage
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+      - name: prod
+        profile: verify
+        profileRules:
+          - profile: deploy
+            when:
+              triggerRef: github-push-main
+  parameters:
+    nodeVersion: "22"
+    pnpmVersion: "10.12.1"
+
+    workspaceDir: ../..
+    appDir: .
+
+    turboFilter: "@app/web"
+    wranglerConfig: wrangler.jsonc
+
+    # @opennextjs/cloudflare emits a Worker entrypoint plus a static-assets
+    # directory bound via ASSETS — both deploy in one `wrangler deploy`.
+    workerEntrypoint: .open-next/worker.js
+    assetsDir: .open-next/assets
+
+    # Per-env worker name: mcp-apps-starter-web-{dev,stage,prod}. The rendered
+    # wrangler.jsonc names the same Worker (its self-reference binding needs it).
+    workerName: mcp-apps-starter-web
+    environmentAwareWorkerName: true
+
+    # The account's workers.dev subdomain; exported to the smoke step as
+    # ${WORKERS_DEV_SUBDOMAIN} and used to build ${DEPLOYED_URL}.
+    workersDevSubdomain: your-workers-subdomain
+
+    installCommand: pnpm install --frozen-lockfile
+    # Render this environment's wrangler config, then build. The config names
+    # the Worker and its self-reference binding for this environment
+    # (wrangler.template.jsonc's `__ENV__`; no wiring document, nothing is
+    # provisioned). The committed wrangler.jsonc is the dev render, which the
+    # composition's verify-app-structure step finds before this runs.
+    #
+    # The build bakes in the server's public origin — the widget HTML an MCP
+    # host renders loads its scripts and styles from it (`assetPrefix`, the
+    # `<base>` tag, the CSP's domains): the environment's SITE_URL when
+    # intent.yaml sets one (a custom domain), else its workers.dev URL. The
+    # subdomain is written out rather than read from ${WORKERS_DEV_SUBDOMAIN}:
+    # the composition exports that to the smoke step only, so the build would
+    # see it empty. ${ORUN_ENVIRONMENT} the runner sets for every step.
+    buildCommand: node ../../tooling/wire/render.mjs --template wrangler.template.jsonc --out wrangler.jsonc --map wiring.fixture.json --env "${ORUN_ENVIRONMENT}" && NEXT_PUBLIC_SITE_URL="${SITE_URL:-https://mcp-apps-starter-web-${ORUN_ENVIRONMENT}.your-workers-subdomain.workers.dev}" pnpm exec turbo run build --filter=@app/web
+
+    # Smoke: the Worker answers (/api/health), the widget page renders (its
+    # Counter link — not the server's name, which is the owner's to change
+    # and HTML-escaped when it carries an `&` or `'`), and the MCP endpoint
+    # serves a widget: resources/list names a ui:// resource and
+    # resources/read returns it as an MCP App's HTML with the app's own
+    # assets — which it can only do if the Worker reached its own page
+    # through the WORKER_SELF_REFERENCE binding. Stateless: no initialize
+    # first, no session. Each response is buffered before grep so an early
+    # match cannot SIGPIPE curl.
+    smokeCommand: 'base="${DEPLOYED_URL}" && health="$(curl -sf --max-time 20 "${base}/api/health")" && echo "${health}" | grep -q "\"status\":\"ok\"" && html="$(curl -sfL --max-time 20 "${base}/")" && echo "${html}" | grep -q "href=\"/counter\"" && list="$(curl -sf --max-time 20 -X POST "${base}/mcp" -H "content-type: application/json" -H "accept: application/json, text/event-stream" -d "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"resources/list\",\"params\":{}}")" && uri="$(echo "${list}" | grep -o "ui://[^\"]*" | head -1)" && test -n "${uri}" && widget="$(curl -sf --max-time 30 -X POST "${base}/mcp" -H "content-type: application/json" -H "accept: application/json, text/event-stream" -d "{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"resources/read\",\"params\":{\"uri\":\"${uri}\"}}")" && echo "${widget}" | grep -q "text/html;profile=mcp-app" && echo "${widget}" | grep -q "/_next/static/"'
+  labels:
+    team: platform
+    layer: delivery
+    surface: web
+    runtime: cloudflare

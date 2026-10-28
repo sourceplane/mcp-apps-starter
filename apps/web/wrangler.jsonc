@@ -1,0 +1,25 @@
+// GENERATED from wrangler.template.jsonc by tooling/wire — edit the
+// template, not this file. The committed copy is the fixture render
+// (`pnpm run wire:fixture`); every Orun lane renders its own environment.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mcp-apps-starter-web-dev",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS",
+  },
+  "observability": { "enabled": true },
+  // No `vars`: the server's name is app/site.ts, and its public origin is
+  // inlined at build (NEXT_PUBLIC_SITE_URL, baseUrl.ts).
+
+  // The MCP route renders each widget by requesting one of the app's own
+  // pages. It requests it from the Worker itself through this binding rather
+  // than over the network: a Worker fetching its own workers.dev hostname is
+  // refused.
+  "services": [
+    { "binding": "WORKER_SELF_REFERENCE", "service": "mcp-apps-starter-web-dev" },
+  ],
+}
