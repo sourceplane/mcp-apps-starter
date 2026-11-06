@@ -56,3 +56,14 @@ renamed (`proxy.ts`). Move it when OpenNext supports the new name.
 
 The resource URI carries `UI_VERSION`; a host shows a stale widget until it
 changes. Upstream's convention, kept; the READMEs say to bump it.
+
+## MA-H — 03-docs needs PyYAML the build box lacks (RESOLVED)
+
+`hooks/render-deployment-docs.sh` imported `yaml` to read the public origin
+from `intent.yaml`. The build box has python3 but not PyYAML, so the import
+failed with exit 1 and no message, and console builds stopped at 03-docs with
+the site live. Local and CLI runs had PyYAML and passed. blog-starter (BS-H),
+astro-boilerplate (AB-L) and portfolio-starter-kit (PK-L) hit it first
+(2026-11-06). The hook now uses PyYAML when present and reads that one key by
+indentation otherwise; `testing/render.test.sh` runs it under a python3 with
+no third-party packages.
